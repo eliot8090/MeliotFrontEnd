@@ -3,13 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodStore</title>
+    <title>Food Store | Panel de Administración</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../../../style.css"> 
+    
 </head>
 <body>
-    <h1>Bienvenido a la seccion administrador</h1>
-    <h2>Página en contrucción</h2>
+    
+    <header id="navbar-container" class="navbar"></header> 
+    
+    <main class="page-container">
+        
+        <aside id="sidebar-container" class="sidebar"></aside> 
 
-    <button id="logout-button">Cerrar sesión</button>
-    <script type="module" src="./adminHome.ts"></script>
+        <section class="content-area">
+            
+            <h2 class="content-title">Panel de Administración</h2>
+
+            <div class="stats-grid">
+              <div class="stat-card bg-purple">
+                <div class="card-header">
+                  <span class="material-symbols-outlined">category</span>
+                  Categorías
+                </div>
+                <div class="card-value">0</div>
+                <div class="card-title">Total de Categorías</div>
+                <button>Gestionar</button>
+              </div>
+
+              <div class="stat-card bg-pink">
+                <div class="card-header">
+                  <span class="material-symbols-outlined">restaurant</span>
+                  Productos
+                </div>
+                <div class="card-value">0</div>
+                <div class="card-title">Total de Productos</div>
+                <button>Gestionar</button>
+              </div>
+
+              <div class="stat-card bg-blue">
+                <div class="card-header">
+                  <span class="material-symbols-outlined">shopping_cart</span>
+                  Pedidos
+                </div>
+                <div class="card-value">0</div>
+                <div class="card-title">Total de Pedidos</div>
+                <button>Gestionar</button>
+              </div>
+
+              <div class="stat-card bg-success">
+                <div class="card-header">
+                  <span class="material-symbols-outlined">check_circle</span>
+                  Disponibles
+                </div>
+                <div class="card-value">0</div>
+                <div class="card-title">Productos activos</div>
+              </div>
+            </div>
+
+            <div class="summary-panel">
+              <h3>
+                <span class="material-symbols-outlined">bar_chart</span>
+                Resumen Rápido
+              </h3>
+              <p>Cargando estadísticas...</p>
+            </div>
+
+
+        </section>
+    </main>
+    <script type="module" src="../../../components/Navbar/navbar.ts"></script>
+    <script type="module" src="../../../components/Sidebar/sidebar.ts"></script>
+    <script type="module" src="./adminHome.ts"></script> 
 </body>
 </html>

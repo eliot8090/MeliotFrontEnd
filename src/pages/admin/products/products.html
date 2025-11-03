@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Gestión de Productos</title>
+    <link rel="stylesheet" href="../../../style.css"> 
+    <script type="module" src="../../../components/Navbar/navbar.ts"></script>
+    <script type="module" src="../../../components/Sidebar/sidebar.ts"></script>
+    <script type="module" src="./products.ts"></script> 
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+    
+    <header id="navbar-container" class="navbar"></header> 
+    
+    <main class="page-container">
+        <aside id="sidebar-container" class="sidebar"></aside> 
+
+        <section class="content-area">
+            <div class="content-header">
+                <h2 class="content-title">Gestión de Productos</h2>
+                    <button id="new-product-btn" class="btn btn-primary">+ Nuevo Producto</button>
+            </div>
+            
+            <table id="products-table" class="crud-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="products-table-body"></tbody>
+            </table>
+            
+            <p id="loading-message" class="info-text">Cargando productos...</p>
+
+            <div id="product-modal" class="modal hidden"></div>
+
+        </section>
+    </main>
+</body>
+</html>

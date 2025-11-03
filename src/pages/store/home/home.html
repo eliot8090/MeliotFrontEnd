@@ -3,13 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodStore</title>
+    <title>Food Store | Catálogo</title>
+    
+    <link rel="stylesheet" href="../../../style.css"> 
+    <!-- Fuente de Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Icons&display=swap" rel="stylesheet">
+
+        
+    <script type="module" src="./home.ts"></script> 
 </head>
 <body>
-    <h1>Bienvenido a la seccion clientes</h1>
-    <h2>Página en contrucción</h2>
+    
+    <header id="navbar-container" class="navbar"></header> 
+    
+    <main class="page-container">
+        
+        <aside id="sidebar-container" class="sidebar"></aside> 
 
-    <button id="logout-button">Cerrar sesión</button>
-    <script type="module" src="./home.ts"></script>
+        <section class="content-area">
+            
+            <h2 class="content-title">Todos los Productos</h2>
+            
+            <div class="controls-bar">
+                <input type="text" id="product-search" placeholder="Buscar productos..." class="search-input">
+                
+                <select id="product-sort" class="sort-select">
+                    <option value="default">Ordenar por:</option>
+                    <option value="name_asc">Nombre (A-Z)</option>
+                    <option value="name_desc">Nombre (Z-A)</option>
+                    <option value="price_asc">Precio (Menor a Mayor)</option>
+                    <option value="price_desc">Precio (Mayor a Menor)</option>
+                </select>
+            </div>
+
+            <p id="product-count" class="product-info-text"></p>
+            
+            <div id="product-grid" class="product-grid">
+                </div>
+            
+            <div id="loading-message" style="text-align: center; margin-top: 50px;">Cargando productos...</div>
+
+        </section>
+    </main>
+    <script type="module" src="../../../components/Navbar/navbar.ts"></script>
+    <script type="module" src="../../../components/Sidebar/sidebar.ts"></script>
 </body>
 </html>
