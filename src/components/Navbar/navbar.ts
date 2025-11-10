@@ -42,9 +42,12 @@ export function renderNavbar(): void {
 
       cartHTML = `
         <a href="../../store/cart/cart.html" class="nav-cart-link">
-          Carrito (<span id="${CART_BADGE_ID}">${cartCount}</span>)
+          <span class="material-symbols-outlined">shopping_cart</span>
+          <span id="${CART_BADGE_ID}">${cartCount}</span>
+          <span>Carrito</span>
         </a>
       `;
+
     }
 
     // Nombre de usuario y botón de logout

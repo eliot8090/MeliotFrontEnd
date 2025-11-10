@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Store | Detalle del Producto</title>
+
+  <link rel="stylesheet" href="../../../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;700" rel="stylesheet">
+</head>
+
+<body>
+  <header id="navbar-container" class="navbar"></header>
+
+  <main class="page-container">
+    <aside id="sidebar-container" class="sidebar"></aside>
+
+    <section class="content-area">
+      <div id="product-detail" class="product-detail-container">
+        <p id="loading-message" style="text-align:center; margin-top:40px;">Cargando producto...</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="../../../components/Navbar/navbar.ts"></script>
+  <script type="module" src="../../../components/Sidebar/sidebar.ts"></script>
+  <script type="module" src="./productDetail.ts"></script>
+</body>
+</html>

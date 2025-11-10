@@ -1,10 +1,8 @@
-import { logout } from "../../../utils/auth.ts"; 
-import { checkAuthAndRole } from "../../../utils/auth.ts";
+import { checkAuthAndRole, logout } from "../../../utils/auth.ts";
 import type { ISessionUser } from "../../../types/IUser.ts";
 import { renderSidebar } from "../../../components/Sidebar/sidebar.ts";
 import { apiGet } from "../../../utils/api.ts";
 import type { IProduct } from "../../../types/IProduct.ts";
-import type { ICategoria } from "../../../types/ICategoria.ts";
 
 const PRODUCT_GRID_ID = 'product-grid';
 const LOADING_MESSAGE_ID = 'loading-message';
@@ -13,153 +11,161 @@ const SEARCH_INPUT_ID = 'product-search';
 const SORT_SELECT_ID = 'product-sort';
 
 let currentFilters = {
-    categoryId: 'all',
-    searchQuery: '',
-    sortOrder: 'default'
+  categoryId: 'all',
+  searchQuery: '',
+  sortOrder: 'default'
 };
 
+let allProducts: IProduct[] = [];
+
+//Iniciamos la página
 document.addEventListener('DOMContentLoaded', async () => {
+  const user: ISessionUser | null = checkAuthAndRole("client"); 
+  if (!user) return;
 
-    // Verificamos autenticación (el cliente no necesita un rol)
-    const user: ISessionUser | null = checkAuthAndRole(null); 
-    
-    // Si no hay sesión, checkAuthAndRole ya redirigió; detenemos la ejecución.
-    if (!user) {
-        return; 
-    }
-    
-    console.log(`Página de Tienda: Bienvenido, ${user.name}`);
-    
-    // Asignamos el nombre del usuario 
-    const userNameElement = document.getElementById('user-name');
-    if (userNameElement) {
-        userNameElement.textContent = user.name;
-    }
-    
-    // Asignamos funcionalidad al boton. 
-    const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', logout);
-    }
-    await renderSidebar(user);
+  await renderSidebar(user);
 
-    setupEventListeners();
-    await loadProducts();
+  const logoutButton = document.getElementById('logout-button');
+  if (logoutButton) logoutButton.addEventListener('click', logout);
+
+  setupEventListeners();
+  await loadProducts();
 });
 
+//Configuración de listeners para filtros y búsqueda
 function setupEventListeners(): void {
-    const searchInput = document.getElementById(SEARCH_INPUT_ID);
-    const sortSelect = document.getElementById(SORT_SELECT_ID);
-    const sidebarContainer = document.getElementById('sidebar-container');
-    
-    // Listener para Búsqueda en tiempo real
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            currentFilters.searchQuery = (searchInput as HTMLInputElement).value.trim();
-            loadProducts(); 
-        });
-    }
+  const searchInput = document.getElementById(SEARCH_INPUT_ID);
+  const sortSelect = document.getElementById(SORT_SELECT_ID);
+  const sidebarContainer = document.getElementById('sidebar-container');
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      currentFilters.searchQuery = (searchInput as HTMLInputElement).value.trim();
+      filterAndRenderProducts(); 
+    });
+  }
 
-    // Listener para Ordenamiento
-    if (sortSelect) {
-        sortSelect.addEventListener('change', () => {
-            currentFilters.sortOrder = (sortSelect as HTMLSelectElement).value;
-            loadProducts(); 
-        });
-    }
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      currentFilters.sortOrder = (sortSelect as HTMLSelectElement).value;
+      filterAndRenderProducts(); 
+    });
+  }
 
-    // Listener para Filtro por Categoría (Delegación de Eventos)
-    if (sidebarContainer) {
-        sidebarContainer.addEventListener('click', (e) => {
-            const target = e.target as HTMLElement;
-            if (target.classList.contains('sidebar-category-link')) {
-                e.preventDefault();
-                
-                // Actualizar la categoría seleccionada
-                currentFilters.categoryId = target.getAttribute('data-id') || 'all';
-
-                // Remover la clase 'active' de todos los links y agregarla al actual
-                document.querySelectorAll('.sidebar-category-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                target.classList.add('active');
-
-                loadProducts(); 
-            }
-        });
-    }
+  if (sidebarContainer) {
+    sidebarContainer.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('sidebar-category-link')) {
+        e.preventDefault();
+        currentFilters.categoryId = target.getAttribute('data-id') || 'all';
+        document.querySelectorAll('.sidebar-category-link').forEach(link => link.classList.remove('active'));
+        target.classList.add('active');
+        filterAndRenderProducts(); 
+      }
+    });
+  }
 }
 
-
-/**
- * 💡 FUNCIÓN PRINCIPAL: Carga, filtra, busca y ordena los productos.
- */
+//Carga los productos dessde el backend
 async function loadProducts() {
-    const grid = document.getElementById(PRODUCT_GRID_ID);
-    const loading = document.getElementById(LOADING_MESSAGE_ID);
-    const countDisplay = document.getElementById(PRODUCT_COUNT_ID);
+  const grid = document.getElementById(PRODUCT_GRID_ID);
+  const loading = document.getElementById(LOADING_MESSAGE_ID);
+  if (!grid || !loading) return;
 
-    if (!grid || !loading || !countDisplay) return;
+  loading.textContent = 'Cargando productos...';
+  loading.style.display = 'block';
 
-    grid.innerHTML = '';
-    loading.textContent = 'Cargando productos...';
-    loading.style.display = 'block';
-
-    try {
-        // Construcción de la URL de la API con los filtros
-        let url = `/productos?disponible=true`;
-        
-        if (currentFilters.categoryId !== 'all') {
-            // Aseguramos que sea un ID numérico para el backend
-            url += `&category=${currentFilters.categoryId}`; 
-        }
-
-        // Si hay texto de búsqueda, lo agregamos (asumiendo que el backend lo maneja)
-        if (currentFilters.searchQuery) url += `&search=${currentFilters.searchQuery}`;
-        
-        // Si hay ordenamiento, lo agregamos (asumiendo que el backend lo maneja)
-        if (currentFilters.sortOrder !== 'default') url += `&sort=${currentFilters.sortOrder}`;
-
-        const products = await apiGet<IProduct[]>(url);
-
-        // Renderizado
-        if (products.length === 0) {
-            loading.textContent = 'No se encontraron productos que coincidan con la búsqueda.';
-        } else {
-            products.forEach(product => {
-                grid.innerHTML += renderProductCard(product);
-            });
-            loading.style.display = 'none';
-        }
-
-        countDisplay.textContent = `Se encontraron ${products.length} productos.`;
-
-    } catch (error) {
-        console.error("Error al cargar productos:", error);
-        loading.textContent = 'Error al conectar con el servidor de productos.';
-    }
-    
+  try {
+    allProducts = await apiGet<IProduct[]>('/productos?disponible=true');
+    loading.style.display = 'none';
+    filterAndRenderProducts();
+  } catch (error) {
+    console.error("Error al cargar productos:", error);
+    loading.textContent = 'Error al conectar con el servidor de productos.';
+  }
 }
 
-/**
- * Genera el HTML para la tarjeta de un solo producto.
- */
+//Filtra y renderiza los productos según los filtros actuales
+function filterAndRenderProducts() {
+  let filtered = [...allProducts];
+
+  // Filtro por categoría
+  if (currentFilters.categoryId !== 'all') {
+    const catId = parseInt(currentFilters.categoryId);
+    filtered = filtered.filter(p => p.categoriaId === catId);
+  }
+
+  // Filtro por texto
+  if (currentFilters.searchQuery) {
+    const query = currentFilters.searchQuery.toLowerCase();
+    filtered = filtered.filter(p =>
+      p.nombre.toLowerCase().includes(query) ||
+      p.descripcion.toLowerCase().includes(query)
+    );
+  }
+
+  // Ordenamiento
+  switch (currentFilters.sortOrder) {
+    case "name_asc":
+      filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      break;
+    case "name_desc":
+      filtered.sort((a, b) => b.nombre.localeCompare(a.nombre));
+      break;
+    case "price_asc":
+      filtered.sort((a, b) => a.precio - b.precio);
+      break;
+    case "price_desc":
+      filtered.sort((a, b) => b.precio - a.precio);
+      break;
+  }
+
+  renderProducts(filtered);
+}
+
+//Renderiza los productos 
+function renderProducts(products: IProduct[]) {
+  const grid = document.getElementById(PRODUCT_GRID_ID);
+  const countDisplay = document.getElementById(PRODUCT_COUNT_ID);
+  if (!grid || !countDisplay) return;
+
+  if (products.length === 0) {
+    grid.innerHTML = `<p class="error-text">No se encontraron productos.</p>`;
+  } else {
+    grid.innerHTML = products.map(renderProductCard).join('');
+  }
+
+  countDisplay.textContent = `${products.length} producto${products.length !== 1 ? 's' : ''}`;
+  setupDetailNavigation();
+}
+
+//Tarjeta HTML de un producto
 function renderProductCard(product: IProduct): string {
-    const availabilityBadge = product.disponible 
-        ? `<span class="badge badge-success">Disponible</span>`
-        : `<span class="badge badge-danger">No Disponible</span>`;
+  const badge = product.disponible 
+    ? `<span class="badge badge-success">Disponible</span>`
+    : `<span class="badge badge-danger">No Disponible</span>`;
 
-    return `
-        <div class="product-card" data-id="${product.id}">
-            <img src="${product.imagenUrl}" alt="${product.nombre}" class="product-image">
-            <div class="product-info">
-                <h3 class="product-name">${product.nombre}</h3>
-                <p class="product-description">${product.descripcion.substring(0, 50)}...</p>
-                <p class="product-price">$${product.precio.toFixed(2)}</p>
-                ${availabilityBadge}
-                <button class="btn btn-add-cart" data-product-id="${product.id}">Ver Detalle</button>
-            </div>
-        </div>
-    `;
+  return `
+    <div class="product-card" data-id="${product.id}">
+      <img src="${product.imagenUrl}" alt="${product.nombre}" class="product-image">
+      <div class="product-info">
+        <h3 class="product-name">${product.nombre}</h3>
+        <p class="product-description">${product.descripcion.substring(0, 60)}...</p>
+        <p class="product-price">$${product.precio.toFixed(2)}</p>
+        ${badge}
+        <button class="btn btn-detail" data-id="${product.id}">Ver detalle</button>
+      </div>
+    </div>
+  `;
+}
 
+//Navegación a detalle de producto
+function setupDetailNavigation(): void {
+  const buttons = document.querySelectorAll(".btn-detail");
+  buttons.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const id = (e.target as HTMLElement).getAttribute("data-id");
+      if (id) window.location.href = `../productDetail/productDetail.html?id=${id}`;
+    });
+  });
 }

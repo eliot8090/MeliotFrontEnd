@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Carrito | Food Store</title>
+
+  <link rel="stylesheet" href="../../../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+  <script type="module" src="./cart.ts"></script>
+</head>
+<body>
+  <header id="navbar-container" class="navbar"></header>
+
+  <main class="page-container">
+    <section class="content-area">
+      <h2 class="content-title">Mi Carrito</h2>
+      <div class="cart-layout">
+        <div id="cart-items" class="cart-items"></div>
+        <aside class="cart-summary-box">
+          <h3>Resumen del Pedido</h3>
+          <div class="summary-line">
+            <span>Subtotal:</span>
+            <span id="cart-subtotal">$0.00</span>
+          </div>
+          <div class="summary-line">
+            <span>Envío:</span>
+            <span id="cart-shipping">$500.00</span>
+          </div>
+          <hr>
+          <div class="summary-line total">
+            <span>Total:</span>
+            <span id="cart-total">$0.00</span>
+          </div>
+          <button id="checkout-btn" class="btn btn-primary full-width">Proceder al Pago</button>
+          <button id="clear-cart-btn" class="btn btn-secondary full-width">Vaciar Carrito</button>
+        </aside>
+      </div>
+
+      <p id="empty-cart-message" class="info-text">Tu carrito está vacío 🛒</p>
+      <div id="toast" class="toast hidden"></div>
+      <div id="checkout-modal" class="modal hidden">
+        <div class="modal-backdrop" data-close="true"></div>
+            <div class="modal-dialog checkout-modal">
+                <button id="close-checkout-modal" class="modal-close-btn">×</button>
+                <h3 class="modal-title">Completar Pedido</h3>
+
+                <form id="checkout-form" class="modal-form">
+                  <label for="checkout-phone">Teléfono</label>
+                  <input type="tel" id="checkout-phone" placeholder="Ej: +54 9 221 123-4567" required>
+
+                  <label for="checkout-address">Dirección de Entrega</label>
+                  <input type="text" id="checkout-address" placeholder="Calle, número, piso, depto" required>
+
+                  <label for="checkout-payment">Método de Pago</label>
+                  <select id="checkout-payment" required>
+                    <option value="">Seleccionar un método</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia Bancaria</option>
+                  </select>
+
+                  <label for="checkout-notes">Notas adicionales (opcional)</label>
+                  <textarea id="checkout-notes" rows="2" placeholder="Instrucciones especiales, timbre, etc."></textarea>
+
+                  <p class="checkout-total-text">
+                    <b>Total a pagar:</b> 
+                    <span id="checkout-total" class="total-amount">$0.00</span>
+                  </p>
+
+                  <button type="submit" class="btn btn-primary btn-confirm">Confirmar Pedido</button>
+                </form>
+              </div>
+            </div>
+    </section>
+  </main>
+  
+  <script type="module" src="../../../components/Navbar/navbar.ts"></script>
+</body>
+</html>

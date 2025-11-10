@@ -1,131 +1,81 @@
-// src/utils/cart.ts
+import type { IProduct } from "../types/IProduct";
 
-// Importa IProduct desde su archivo
-import type { IProduct } from "../types/IProduct.ts";
-
-// Importa ICartItem (y ICheckoutData si la vas a usar aquí) desde su archivo correcto
-import type { ICartItem } from "../types/ICart.ts";
-
-const CART_STORAGE_KEY = 'foodstore_cart';
-const DELIVERY_COST = 500; // Costo de envío fijo: $500 [cite: 232]
-
-/**
- * Obtiene el contenido actual del carrito desde localStorage.
- * @returns Array de ICartItem.
- */
-export function getCart(): ICartItem[] {
-    const storedCart = localStorage.getItem(CART_STORAGE_KEY);
-    if (!storedCart) {
-        return [];
-    }
-    try {
-        return JSON.parse(storedCart) as ICartItem[];
-    } catch (e) {
-        console.error("Error al parsear el carrito de localStorage:", e);
-        return [];
-    }
+//Estructura de un ítem del carrito
+export interface CartItem {
+  product: IProduct;
+  quantity: number;
 }
 
-/**
- * Guarda el carrito en localStorage.
- * @param cart Array de ICartItem.
- */
-function saveCart(cart: ICartItem[]): void {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+//Estructura general del carrito
+export interface Cart {
+  items: CartItem[];
 }
 
-/**
- * Agrega un producto al carrito, manejando las cantidades.
- * @param product El producto a agregar.
- * @param quantity La cantidad a agregar (se valida en el componente Detalle).
- */
-export function addToCart(product: IProduct, quantity: number): void {
-    let cart = getCart();
-    const existingItemIndex = cart.findIndex(item => item.product.id === product.id);
+//Obtiene el carrito actual desde localStorage.
 
-    if (existingItemIndex > -1) {
-        // Gestionar carrito (modificar cantidades) [cite: 138]
-        cart[existingItemIndex].quantity += quantity;
-    } else {
-        // Agregar productos al carrito [cite: 137]
-        cart.push({ product, quantity });
-    }
-
-    saveCart(cart);
-    // Opcional: Notificar al componente del navbar para actualizar el badge del carrito [cite: 199]
-    document.dispatchEvent(new Event('cartUpdated')); 
+export function getCart(): Cart {
+  const stored = localStorage.getItem("cart");
+  if (!stored) return { items: [] };
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return { items: [] };
+  }
 }
 
-/**
- * Elimina un producto del carrito.
- * @param productId ID del producto a eliminar.
- */
-export function removeFromCart(productId: number): void {
-    let cart = getCart();
-    // Gestionar carrito (quitar) [cite: 138]
-    cart = cart.filter(item => item.product.id !== productId);
-    saveCart(cart);
-    document.dispatchEvent(new Event('cartUpdated'));
+//Guarda el carrito actualizado en localStorage.
+export function saveCart(cart: Cart): void {
+  localStorage.setItem("cart", JSON.stringify(cart));
 }
 
-/**
- * Modifica la cantidad de un producto específico.
- * @param productId ID del producto.
- * @param newQuantity La nueva cantidad (debe ser > 0).
- */
-export function updateCartQuantity(productId: number, newQuantity: number): void {
-    if (newQuantity <= 0) {
-        removeFromCart(productId);
-        return;
-    }
-    
-    const cart = getCart();
-    const item = cart.find(item => item.product.id === productId);
-
-    if (item) {
-        // Gestión de carrito (modificar cantidades) [cite: 138]
-        // Validación de stock: No permite cantidad mayor al stock disponible [cite: 217] (aunque esta validación principal debe hacerse en el componente Carrito/Detalle)
-        item.quantity = Math.min(newQuantity, item.product.stock); 
-        saveCart(cart);
-        document.dispatchEvent(new Event('cartUpdated'));
-    }
-}
-
-/**
- * Vacía completamente el carrito.
- */
+//Limpia todo el carrito.
 export function clearCart(): void {
-    localStorage.removeItem(CART_STORAGE_KEY);
-    document.dispatchEvent(new Event('cartUpdated'));
+  localStorage.removeItem("cart");
 }
 
-/**
- * Limpia el carrito al confirmar el pedido.
- * Se limpia al confirmar pedido[cite: 252].
- */
-export function finalizeOrder(): void {
-    clearCart();
+//Agrega un producto al carrito o aumenta su cantidad
+export function addToCart(product: IProduct, quantity: number = 1): void {
+  const cart = getCart();
+  const existingItem = cart.items.find(item => item.product.id === product.id);
+
+  if (existingItem) {
+    existingItem.quantity += quantity;
+  } else {
+    cart.items.push({ product, quantity });
+  }
+
+  saveCart(cart);
 }
 
-/**
- * Calcula el resumen del pedido.
- * @returns { subtotal, envio, total }
- */
+//Elimina un producto completamente del carrito.
+export function removeFromCart(productId: number): void {
+  const cart = getCart();
+  cart.items = cart.items.filter(item => item.product.id !== productId);
+  saveCart(cart);
+}
+
+//Actualiza la cantidad de un producto (puede sumar o restar). Si la cantidad llega a 0, lo elimina.
+export function updateCartItem(productId: number, delta: number): void {
+  const cart = getCart();
+  const item = cart.items.find(i => i.product.id === productId);
+  if (!item) return;
+
+  item.quantity += delta;
+  if (item.quantity <= 0) {
+    cart.items = cart.items.filter(i => i.product.id !== productId);
+  }
+
+  saveCart(cart);
+}
+
+//Calcula el total y cantidad de ítems del carrito.
 export function calculateCartSummary() {
-    const cart = getCart();
-    // Subtotal: suma de (precio * cantidad) de cada item
-    const subtotal = cart.reduce((acc, item) => acc + (item.product.precio * item.quantity), 0);
-    
-    // Costo de envío (fijo: $500) [cite: 232]
-    const envio = subtotal > 0 ? DELIVERY_COST : 0; // Solo hay envío si hay productos
-    
-    // Total
-    const total = subtotal + envio;
+  const cart = getCart();
+  const total = cart.items.reduce(
+    (acc, item) => acc + item.product.precio * item.quantity,
+    0
+  );
+  const itemCount = cart.items.reduce((acc, item) => acc + item.quantity, 0);
 
-    return {
-        subtotal,
-        envio,
-        total,
-        itemCount: cart.length // Contador del carrito con cantidad de ítems [cite: 199]
-    };
+  return { total, itemCount };
 }
