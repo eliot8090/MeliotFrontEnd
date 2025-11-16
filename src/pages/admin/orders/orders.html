@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Store | Gestión de Pedidos</title>
+
+  <!-- Estilos generales -->
+  <link rel="stylesheet" href="../../../style.css" />
+
+  <!-- Iconos de Material -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Script principal -->
+  <script type="module" src="./orders.ts"></script>
+</head>
+
+<body>
+  <!-- Navbar global -->
+  <header id="navbar-container" class="navbar"></header>
+
+  <main class="page-container">
+    <!-- Sidebar Admin -->
+    <aside id="sidebar-container" class="sidebar"></aside>
+
+    <!-- Contenido principal -->
+    <section class="content-area">
+      <div class="content-header">
+        <h2>Gestión de Pedidos</h2>
+      </div>
+
+      <!-- Contenedor de pedidos -->
+      <div id="orders-container" class="orders-container"></div>
+
+      <!-- Mensaje de carga -->
+      <p id="loading-message" class="info-text">Cargando pedidos...</p>
+    </section>
+  </main>
+
+  <!-- Modal para detalle de pedido -->
+  <div id="order-detail-modal" class="modal hidden"></div>
+
+  <!-- Scripts compartidos -->
+  <script type="module" src="../../../components/Navbar/navbar.ts"></script>
+  <script type="module" src="../../../components/Sidebar/sidebar.ts"></script>
+</body>
+</html>

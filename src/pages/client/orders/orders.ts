@@ -1,4 +1,3 @@
-// src/pages/client/orders/orders.ts
 import { checkAuthAndRole, logout } from "../../../utils/auth.ts";
 import { renderSidebar } from "../../../components/Sidebar/sidebar.ts";
 import { apiGet } from "../../../utils/api.ts";
@@ -19,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // Carga los pedidos del usuario desde el backend
+
 async function loadOrders(userId: number): Promise<void> {
   const container = document.getElementById(ORDERS_CONTAINER_ID);
   const loadingMessage = document.getElementById(LOADING_MESSAGE_ID);
@@ -46,13 +46,15 @@ async function loadOrders(userId: number): Promise<void> {
   }
 }
 
-//Listado de pedidos
+// Renderizar lista de pedidos 
+
 function renderOrdersList(orders: IOrder[], container: HTMLElement): void {
   const cardsHTML = orders.map(order => renderOrderCard(order)).join("");
   container.innerHTML = cardsHTML;
 }
 
-// Tarjeta individual de pedido
+// Tarjeta de pedido
+
 function renderOrderCard(order: IOrder): string {
   const date = new Date(order.fecha).toLocaleDateString("es-AR", {
     day: "2-digit",
@@ -76,7 +78,7 @@ function renderOrderCard(order: IOrder): string {
   });
 
   const productosHTML = order.detallesPedido
-    ?.map(item => `• ${item.productoNombre} (x${item.cantidad})`)
+    ?.map(item => `• ${item.producto.nombre} (x${item.cantidad})`)
     .join("<br>") || "Sin productos";
 
   const totalItems = order.detallesPedido?.length || 0;
@@ -117,7 +119,8 @@ function renderOrderCard(order: IOrder): string {
   `;
 }
 
-//Evento para ver detalle del pedido
+// Click en "ver detalle"
+
 document.addEventListener("click", async (e) => {
   const target = e.target as HTMLElement;
   if (target.matches(".order-actions button")) {
@@ -135,6 +138,7 @@ document.addEventListener("click", async (e) => {
 });
 
 //Renderiza el modal con detalle del pedido
+
 function renderOrderDetailModal(order: IOrder): void {
   const modal = document.getElementById("order-detail-modal");
   if (!modal) return;
@@ -159,7 +163,7 @@ function renderOrderDetailModal(order: IOrder): void {
       (p) => `
         <div class="detalle-producto">
           <div class="detalle-info">
-            <p class="nombre">${p.productoNombre}</p>
+            <p class="nombre">${p.producto.nombre}</p>
             <p class="cantidad">Cantidad: ${p.cantidad} x $${p.precioUnitario.toFixed(2)}</p>
           </div>
           <p class="precio">$${p.subtotal.toFixed(2)}</p>
@@ -167,6 +171,61 @@ function renderOrderDetailModal(order: IOrder): void {
       `
     )
     .join("");
+
+  // Mensaje dinámico según estado
+
+  function getEstadoMensaje(estado: string): string {
+    switch (estado.toLowerCase()) {
+      case "pendiente":
+        return `
+          <div class="detalle-estado-final">
+            <span class="material-symbols-outlined icon-clock">schedule</span>
+            <div>
+              <p class="titulo">Tu pedido está pendiente</p>
+              <p class="subtitulo">Estamos por comenzar a prepararlo.</p>
+            </div>
+          </div>
+        `;
+
+      case "confirmado":
+        return `
+          <div class="detalle-estado-final">
+            <span class="material-symbols-outlined icon-fire">local_fire_department</span>
+            <div>
+              <p class="titulo">¡Estamos preparando tu pedido!</p>
+              <p class="subtitulo">En breve estará listo para entregar.</p>
+            </div>
+          </div>
+        `;
+
+      case "terminado":
+        return `
+          <div class="detalle-estado-final">
+            <span class="material-symbols-outlined icon-check">check_circle</span>
+            <div>
+              <p class="titulo">Tu pedido está listo</p>
+              <p class="subtitulo">Gracias por tu compra ❤️</p>
+            </div>
+          </div>
+        `;
+
+      case "cancelado":
+        return `
+          <div class="detalle-estado-final">
+            <span class="material-symbols-outlined icon-cancel">cancel</span>
+            <div>
+              <p class="titulo">Pedido cancelado</p>
+              <p class="subtitulo">Si creés que es un error, podés contactarnos.</p>
+            </div>
+          </div>
+        `;
+
+      default:
+        return "";
+    }
+  }
+
+  // Renderizar modal
 
   modal.innerHTML = `
     <div class="modal-backdrop"></div>
@@ -200,19 +259,13 @@ function renderOrderDetailModal(order: IOrder): void {
         </div>
       </div>
 
-      <div class="detalle-estado-final">
-        <span class="material-symbols-outlined icon-clock">schedule</span>
-        <div>
-          <p class="titulo">Tu pedido está siendo procesado</p>
-          <p class="subtitulo">Te notificaremos cuando esté listo para entrega.</p>
-        </div>
-      </div>
+      ${getEstadoMensaje(order.estado)}
+
     </div>
   `;
 
   modal.classList.remove("hidden");
 
-  
   const backdrop = modal.querySelector(".modal-backdrop");
   const closeBtn = modal.querySelector(".modal-close-btn");
   if (backdrop) backdrop.addEventListener("click", closeOrderModal);
@@ -220,6 +273,7 @@ function renderOrderDetailModal(order: IOrder): void {
 }
 
 //Cerrar modal de detalle de pedido
+
 function closeOrderModal(): void {
   const modal = document.getElementById("order-detail-modal");
   if (!modal) return;
@@ -227,7 +281,8 @@ function closeOrderModal(): void {
   modal.innerHTML = "";
 }
 
-//Muestra un mensaje flotante
+// Mensaje flotante toast
+
 function showFloatingMessage(message: string, type: "success" | "error"): void {
   const msg = document.createElement("div");
   msg.textContent = message;

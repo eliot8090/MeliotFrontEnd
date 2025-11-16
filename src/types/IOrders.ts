@@ -1,24 +1,42 @@
-export type Estado = 'pendiente' | 'confirmado' | 'cancelado' | 'terminado'; 
+// src/types/IOrders.ts
 
-// Estructura de un detalle de pedido
+export type Estado = 'pendiente' | 'confirmado' | 'cancelado' | 'terminado';
+
+/* =======================
+   DETALLE DE PEDIDO
+======================= */
 export interface IDetallePedido {
-    productoId: number;
-    productoNombre: string;
-    cantidad: number;
-    precioUnitario: number;
-    subtotal: number;
+  productoId: number;
+  producto: {
+    id: number;
+    nombre: string;
+  };
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
 }
 
-// Estructura de un pedido
+/* =======================
+   USUARIO ANIDADO (DTO)
+======================= */
+export interface IUsuarioPedido {
+  id: number;
+  nombre: string;
+  email: string;
+}
+
+/* =======================
+   PEDIDO COMPLETO
+======================= */
 export interface IOrder {
-    id: number;
-    fecha: string; 
-    estado: Estado;
-    total: number;
-    usuarioId: number; 
-    detallesPedido: IDetallePedido[]; 
-    telefono: string; 
-    direccion: string; 
-    metodoPago: string; 
-    notasAdicionales?: string; 
+  id: number;
+  fecha: string;
+  total: number;
+  usuario: IUsuarioPedido; // ✅ ya no es solo el ID
+  telefono: string;
+  direccion: string;
+  metodoPago: string;
+  notasAdicionales?: string;
+  estado: Estado;
+  detallesPedido: IDetallePedido[];
 }
